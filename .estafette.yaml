@@ -1,0 +1,48 @@
+builder:
+  track: dev
+
+labels:
+  type: library
+  app-group: estafette-ci
+  team: estafette
+  language: python
+
+version:
+  semver:
+    major: 0
+    minor: 1
+    patch: 0
+
+stages:
+  bake:
+    image: extensions/docker:dev
+    action: build
+    severity: unknown
+    repositories:
+      - estafette
+    path: .
+    copy:
+      - /etc/ssl/certs/ca-certificates.crt
+
+  push-to-docker-hub:
+    image: extensions/docker:dev
+    action: push
+    repositories:
+      - estafette
+    when: branch == 'main'
+
+  tag-revision:
+    image: golang:1.20-alpine
+    commands:
+      - apk add git
+      - git tag ${ESTAFETTE_BUILD_VERSION}
+      - git push origin ${ESTAFETTE_BUILD_VERSION}
+    when: branch == 'main'
+
+  slack-notify:
+    image: extensions/slack-build-status:dev
+    workspace: estafette
+    channels:
+      - "#build-status"
+    when: status == 'succeeded' ||
+      status == 'failed'
