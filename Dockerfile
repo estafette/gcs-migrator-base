@@ -1,22 +1,14 @@
-FROM python:3.11-alpine
+FROM python:3.11
 
-RUN apk update && \
-    apk add binutils build-base git cmake automake autoconf && \
-    rm -rf /var/cache/apk/*
-
-RUN pip install wheel patchelf-wrapper SCons
-
-RUN pip install staticx
-
-RUN git clone https://github.com/NixOS/patchelf.git /tmp/patchelf && \
-      cd /tmp/patchelf && \
-      ./bootstrap.sh && \
-      ./configure && \
-      make && \
-      make check && \
-      make install && \
-      cd /root && \
-      rm -rf /tmp/patchelf
+RUN set -eux && \
+    apt-get update; \
+    apt-get install --no-install-recommends -y \
+        python3-dev build-essential patchelf upx; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*; \
+    python -m pip install --no-cache-dir --upgrade --force --ignore-installed pip; \
+    python -m pip install --no-cache-dir --upgrade wheel SCons; \
+    python -m pip install --no-cache-dir --upgrade staticx pyinstaller
 
 COPY requirements.txt /tmp
 
