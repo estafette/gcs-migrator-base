@@ -1,5 +1,7 @@
 FROM python:3.11
 
+ENV PYINSTALLER_CONFIG_DIR=/root/.pyconfig
+
 RUN set -eux && \
     apt-get update; \
     apt-get install --no-install-recommends -y \
@@ -10,8 +12,11 @@ RUN set -eux && \
     python -m pip install --no-cache-dir --upgrade wheel SCons; \
     python -m pip install --no-cache-dir --upgrade staticx pyinstaller
 
-COPY requirements.txt /tmp
-
-RUN pip install -r /tmp/requirements.txt && \
-    rm -rf /tmp/requirements.txt
-
+RUN mkdir -p /root/.pyconfig
+RUN git clone -b features/migration-api-TL-129 https://github.com/estafette/estafette-ci-api.git
+WORKDIR /estafette-ci-api/gcs-migrator
+RUN pip install -r requirements.txt
+RUN pyinstaller --strip -F -n gcs-migrator server.py
+RUN mkdir -p ../publish
+RUN staticx --strip dist/gcs-migrator ../publish/gcs-migrator
+RUN rm -rf /estafette-ci-api
