@@ -4,6 +4,7 @@ ENV PYINSTALLER_CONFIG_DIR=/root/.pyconfig
 
 RUN set -eux && \
     apt-get update; \
+    apt-get upgrade -y; \
     apt-get install --no-install-recommends -y \
         python3-dev build-essential patchelf upx; \
     apt-get clean; \
